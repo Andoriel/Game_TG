@@ -8,14 +8,11 @@ public class MenuMainManager : MonoBehaviour
     [SerializeField] private string sceneName;
     [SerializeField] private GameObject panelMainMenu;
     [SerializeField] private GameObject panelCredits;
-
-    /*
-     * public void Play()
+    
+    public void Play()
     {
-        SceneManager.LoadScene("Lobby");
+        SceneManager.LoadScene(sceneName);
     }
-    */
-
 
     public void OpenCredits()
     {
@@ -28,7 +25,6 @@ public class MenuMainManager : MonoBehaviour
         panelCredits.SetActive(false);
         panelMainMenu.SetActive(true);
     }
-
 
     public void ExitGame()
     {

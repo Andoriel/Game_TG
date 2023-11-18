@@ -8,7 +8,6 @@ public class controlePersonagem : MonoBehaviour
     public float maximaVelocidade = 10.0f; // Velocidade máxima ao correr.
 
     private Rigidbody rb;
-    private bool estaCorrendo = false;
     private float velocidadeAtual;
 
     private void Start()
@@ -27,13 +26,11 @@ public class controlePersonagem : MonoBehaviour
         // Se estiver segurando Shift, aumentar gradualmente a velocidade.
         if (Input.GetKey(KeyCode.LeftShift))
         {
-            estaCorrendo = true;
             velocidadeAtual += aumentoVelocidadePorSegundo * Time.deltaTime;
             velocidadeAtual = Mathf.Clamp(velocidadeAtual, velocidadeInicial, maximaVelocidade);
         }
         else
         {
-            estaCorrendo = false;
             velocidadeAtual = velocidadeInicial;
         }
 
