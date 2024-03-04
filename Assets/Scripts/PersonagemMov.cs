@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PersonagemMov : MonoBehaviour
@@ -10,6 +9,7 @@ public class PersonagemMov : MonoBehaviour
     public Transform groundCheck;
 
     public Object npcCoelho;
+    public Object corrida1;
 
     public LayerMask groundmask;
 
@@ -25,53 +25,27 @@ public class PersonagemMov : MonoBehaviour
 
     private bool isGrounded;
     private bool isTriggerNPC;
+    private bool isCorrida1;
     private bool isActiveBoxNPC;
+    private bool isRunning;
+    private bool isJumping;
+    private bool isStoped;
+    private bool isWalking;
 
     Vector3 Velocity;
 
     [SerializeField] private GameObject caixaDeConversaNPC;
 
-    // Update is called once per frame
     private void Start()
     {
-        controller.enabled = true;
         anim = GetComponent<Animator>();
     }
 
     private void Update()
     {
-
-        if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow))
-            Andar();
-
-        if (Input.GetKeyUp(KeyCode.RightArrow) || Input.GetKeyUp(KeyCode.LeftArrow) || Input.GetKeyUp(KeyCode.UpArrow) || Input.GetKeyUp(KeyCode.DownArrow))
-            Parado();
-
-        if (Input.GetKeyDown(KeyCode.LeftShift))
-            Correr();
-
-        if (Input.GetKeyUp(KeyCode.LeftShift))
-            anim.SetBool("correndo", false);
-
-        if (Input.GetButtonDown("Jump") && isGrounded)
-            Pular();
-
-        if (Input.GetButtonDown("Fire1") && isTriggerNPC)
-            if(!isActiveBoxNPC)
-                AtivarConversa();
-                else if (isActiveBoxNPC)
-                    DesativarConversa();
-
-
-        isGrounded = Physics.CheckSphere(groundCheck.position, grounddistance, groundmask);
-
-        if (isGrounded && Velocity.y < 0)
-        {
-            Velocity.y = -2f;
-        }
-
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
+        //ANDAR
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
         Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
 
         if (direction.magnitude >= 0.1f)
@@ -94,46 +68,86 @@ public class PersonagemMov : MonoBehaviour
 
             // Move o personagem.
             controller.Move(transform.forward * speed * deltaTime);
+
+            isWalking = true;
+        }
+        else
+        {
+            isWalking = false;
+        }
+
+        // Atualizar os parâmetros da animação
+        AtualizarParametrosAnimacao();
+
+        //PULAR
+        if (Input.GetButtonDown("Jump") && isGrounded)
+            Pular();
+
+        // Lógica do NPC
+        if (Input.GetButtonDown("Fire1") && isTriggerNPC)
+        {
+            if (!isActiveBoxNPC)
+                AtivarConversa();
+            else if (isActiveBoxNPC)
+                DesativarConversa();
+        }
+
+        isGrounded = Physics.CheckSphere(groundCheck.position, grounddistance, groundmask);
+
+        if (isGrounded && Velocity.y < 0)
+        {
+            Velocity.y = -2f;
         }
 
         Velocity.y += gravity * Time.deltaTime;
         controller.Move(Velocity * Time.deltaTime);
-
     }
+
+    private void AtualizarParametrosAnimacao()
+    {
+        anim.SetBool("andando", isWalking);
+        anim.SetBool("correndo", isRunning);
+        anim.SetBool("pulando", isJumping);
+    }
+
     private void Parado()
     {
-        anim.SetBool("parado", true);
+        isRunning = false;
+        isJumping = false;
         anim.SetBool("andando", false);
         anim.SetBool("correndo", false);
-        anim.SetBool("entrarNoCasco", false);
+        anim.SetBool("pulando", false);
     }
 
     private void Andar()
     {
         speed = 5f;
-        anim.SetBool("parado", false);
+        isRunning = false;
+        isJumping = false;
         anim.SetBool("andando", true);
         anim.SetBool("correndo", false);
-        anim.SetBool("entrarNoCasco", false);
+        anim.SetBool("pulando", false);
     }
 
     private void Correr()
     {
         speed = 12f;
-        anim.SetBool("parado", false);
-        anim.SetBool("andando", true);
+        isRunning = true;
+        isJumping = false;
+        anim.SetBool("andando", false);
         anim.SetBool("correndo", true);
-        anim.SetBool("entrarNoCasco", false);
+        anim.SetBool("pulando", false);
     }
 
     private void Pular()
     {
-        anim.SetBool("parado", false);
-        anim.SetBool("andando", true);
-        anim.SetBool("correndo", true);
-        anim.SetBool("entrarNoCasco", true);
+        isJumping = true;
         Velocity.y = Mathf.Sqrt(jumpheight * -2f * gravity);
         isGrounded = false;
+
+        anim.SetBool("andando", false);
+        anim.SetBool("correndo", false);
+        anim.SetBool("pulando", true);
     }
 
     private void AtivarConversa()
@@ -157,6 +171,11 @@ public class PersonagemMov : MonoBehaviour
     {
         isTriggerNPC = true;
     }
+    private void OnCollisionEnter(Collision corrida1)
+    {
+        isCorrida1 = true;
+        Debug.Log("entrou na colisao");
+    }
 
     private void OnTriggerExit(Collider npcCoelho)
     {
@@ -165,5 +184,4 @@ public class PersonagemMov : MonoBehaviour
         caixaDeConversaNPC.SetActive(false);
         isActiveBoxNPC = false;
     }
-
 }
